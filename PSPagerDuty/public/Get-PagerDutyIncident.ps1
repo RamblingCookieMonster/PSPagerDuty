@@ -99,7 +99,12 @@
     )
     $Params = @{}
     switch($PSBoundParameters.Keys) {
-        'Since' {$QueryHash.since = $Since.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')}
+        'Since' {
+            $QueryHash.since = $Since.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+            if(-not $PSBoundParameters.ContainsKey('Until')){
+                $QueryHash.until = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+            }    
+        }
         'Until' {$QueryHash.until = $Until.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')}
         'Status' {$QueryHash.'statuses[]' = $Status} #statuses
         'DedupeKey' {$QueryHash.incident_key = $DedupeKey}  #incident_key
@@ -123,10 +128,22 @@
             $Uri = '{0}?include[]=channels' -f $Incident.first_trigger_log_entry.self
             $LogEntry = $null
             $LogEntry = Invoke-RestMethod -Uri $Uri -Headers $Header -Verbose:$VerbosePreference
-            Add-Member -InputObject $Incident -MemberType NoteProperty -Name client_url -Value $LogEntry.log_entry.channel.client_url -Force
-            Add-Member -InputObject $Incident -MemberType NoteProperty -Name client -Value $LogEntry.log_entry.channel.client -Force
-            Add-Member -InputObject $Incident -MemberType NoteProperty -Name details -Value $LogEntry.log_entry.channel.details -Force
-            Add-Member -InputObject $Incident -MemberType NoteProperty -Name incident_key -Value $LogEntry.log_entry.channel.incident_key -Force
+            if($LogEntry.log_entry.channel.client_url){
+                Add-Member -InputObject $Incident -MemberType NoteProperty -Name client_url -Value $LogEntry.log_entry.channel.client_url -Force
+            }
+            if($LogEntry.log_entry.channel.client){
+                Add-Member -InputObject $Incident -MemberType NoteProperty -Name client -Value $LogEntry.log_entry.channel.client -Force
+            }
+            if($LogEntry.log_entry.channel.details){
+                Add-Member -InputObject $Incident -MemberType NoteProperty -Name details -Value $LogEntry.log_entry.channel.details -Force
+            }
+            if($LogEntry.log_entry.channel.incident_key){
+                Add-Member -InputObject $Incident -MemberType NoteProperty -Name incident_key -Value $LogEntry.log_entry.channel.incident_key -Force
+            }
+            if($LogEntry.log_entry.channel.cef_details.dedup_key){
+                Add-Member -InputObject $Incident -MemberType NoteProperty -Name dedup_key -Value $LogEntry.log_entry.channel.cef_details.dedup_key -Force
+            }
+            Add-Member -InputObject $Incident -MemberType NoteProperty -Name first_trigger_log_entry_raw -Value $LogEntry -Force
         }
     }
     $Output
