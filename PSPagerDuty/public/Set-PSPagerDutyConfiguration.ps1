@@ -1,4 +1,5 @@
-function Set-PSPagerDutyConfiguration {
+function Set-PSPagerDutyConfiguration
+{
     <#
     .SYNOPSIS
        Set PSPagerDuty configuration values
@@ -14,13 +15,19 @@ function Set-PSPagerDutyConfiguration {
     .FUNCTIONALITY
         PagerDuty
     #>
-    [cmdletbinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [ValidateNotNull()]
         [string]$Token
     )
-    Switch ($PSBoundParameters.Keys)
+
+    if ($PSCmdlet.ShouldProcess($Token))
     {
-        'Token' { $Script:PSPagerDutyConfig.Token = $Token }
+
+        Switch ($PSBoundParameters.Keys)
+        {
+            'Token' { $Script:PSPagerDutyConfig.Token = $Token }
+        }
     }
+
 }

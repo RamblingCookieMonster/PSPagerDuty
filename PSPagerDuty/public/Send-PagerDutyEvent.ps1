@@ -1,5 +1,6 @@
-﻿function Send-PagerDutyEvent {
-<#
+﻿function Send-PagerDutyEvent
+{
+    <#
     .SYNOPSIS
         Send a PagerDuty event to the v2 Events API
     .DESCRIPTION
@@ -50,6 +51,10 @@
         Client generating this alert
     .PARAMETER ClientUrl
         Uri to client that generates this alert
+    .PARAMETER  JsonDepth
+        Depth for JSON of the alert we're create.  Defaults to 5
+
+        Your -Details will already be nested two layers deep (alert.payload.custom_details)
     .EXAMPLE
         Send-PagerDutyEvent `
             -IntegrationKey REDACTED `
@@ -69,74 +74,94 @@
             -Client 'PowerShell-ad-privgroup' `
             -ClientUrl "https://some.useful.url"
 #>
-[cmdletbinding()]
-param (
-    [string]$IntegrationKey,
-    [string]$DedupeKey,
-    [string]$Summary,
-    [datetime]$Time,
-    [string]$Source,
-    [validateset('critical', 'error', 'warning', 'info')]
-    [string]$Severity,
-    [string]$Component,
-    [string]$Group,
-    [string]$Class,
-    [object]$Details,
-    [hashtable[]]$Images, #src, href, alt
-    [hashtable[]]$Links, #href, text
-    [validateset('trigger', 'resolve', 'acknowledge')]
-    [string]$Action,
-    [string]$Client,
-    [string]$ClientUrl
-)
-$uri = 'https://events.pagerduty.com/v2/enqueue'
-
-$Payload = @{
-    payload = @{
-        summary = $Summary
-        source = $Source
-        severity = $Severity
+    [cmdletbinding()]
+    param (
+        [string]$IntegrationKey,
+        [string]$DedupeKey,
+        [string]$Summary,
+        [datetime]$Time,
+        [string]$Source,
+        [validateset('critical', 'error', 'warning', 'info')]
+        [string]$Severity,
+        [string]$Component,
+        [string]$Group,
+        [string]$Class,
+        [object]$Details,
+        [hashtable[]]$Images, #src, href, alt
+        [hashtable[]]$Links, #href, text
+        [validateset('trigger', 'resolve', 'acknowledge')]
+        [string]$Action,
+        [string]$Client,
+        [string]$ClientUrl,
+        [int]$JsonDepth = 5
+    )
+    $Urls = $null
+    $Urls = Get-PagerDutyUrl
+    if (-not $Urls)
+    {
+        Write-Error -Message ('Error durant la génération du header')
+        continue
     }
-    routing_key = $IntegrationKey
-    dedup_key = $DedupeKey
-    event_action = $Action
-}
 
-if($Time){
-    $TimeStamp = Get-Date $Time -Format "o"
-}
-else {
-    $TimeStamp = Get-Date -Format "o"
-}
-$Payload.payload.add('timestamp',$TimeStamp)
+    $uri = $Urls.Events.url
+    $contenttype = $Urls.Events.contenttype
 
-if($Details){
-    $Payload.payload.add('custom_details',$Details)
-}
-if($Component){
-    $Payload.payload.add('component',$Component)
-}
-if($Group){
-    $Payload.payload.add('group',$Group)
-}
-if($Class){
-    $Payload.payload.add('class',$Class)
-}
-if($Client){
-    $Payload.add('client',$Client)
-}
-if($ClientUrl){
-    $Payload.add('client_url',$ClientUrl)
-}
-if($Images.count -gt 0){
-    $Payload.add('images',$Images)
-}
-if($Links.count -gt 0){
-    $Payload.add('links',$Links)
-}
-$json = $Payload | ConvertTo-Json -Compress
-Invoke-RestMethod -Method Post `
-                  -Uri $uri `
-                  -Body $json `
-                  -ContentType 'application/json'
+    $Payload = @{
+        payload      = @{
+            summary  = $Summary
+            source   = $Source
+            severity = $Severity
+        }
+        routing_key  = $IntegrationKey
+        dedup_key    = $DedupeKey
+        event_action = $Action
+    }
+
+    if ($Time)
+    {
+        $TimeStamp = Get-Date $Time -Format 'o'
+    }
+    else
+    {
+        $TimeStamp = Get-Date -Format 'o'
+    }
+    $Payload.payload.add('timestamp', $TimeStamp)
+
+    if ($Details)
+    {
+        $Payload.payload.add('custom_details', $Details)
+    }
+    if ($Component)
+    {
+        $Payload.payload.add('component', $Component)
+    }
+    if ($Group)
+    {
+        $Payload.payload.add('group', $Group)
+    }
+    if ($Class)
+    {
+        $Payload.payload.add('class', $Class)
+    }
+    if ($Client)
+    {
+        $Payload.add('client', $Client)
+    }
+    if ($ClientUrl)
+    {
+        $Payload.add('client_url', $ClientUrl)
+    }
+    if ($Images.count -gt 0)
+    {
+        $Payload.add('images', $Images)
+    }
+    if ($Links.count -gt 0)
+    {
+        $Payload.add('links', $Links)
+    }
+    $json = $Payload | ConvertTo-Json -Compress -Depth $JsonDepth
+    Invoke-RestMethod -Method Post `
+        -Uri $uri `
+        -Body $json `
+        -ContentType $contenttype
 }

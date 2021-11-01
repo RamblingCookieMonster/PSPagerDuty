@@ -1,0 +1,37 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    //-------- Editor configuration --------
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    //-------- Files configuration --------
+    "files.encoding": "utf8bom",
+    "files.autoSave": "onFocusChange",
+    "files.autoGuessEncoding": true,
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    //-------- PowerShell configuration --------
+    "powershell.codeFormatting.alignPropertyValuePairs": true,
+    "powershell.codeFormatting.preset": "Allman",
+    "powershell.codeFormatting.pipelineIndentationStyle": "IncreaseIndentationAfterEveryPipeline",
+    "powershell.scriptAnalysis.settingsPath": "ScriptAnalyzerSettings.psd1",
+    "powershell.codeFormatting.useCorrectCasing": true,
+    "powershell.scriptAnalysis.enable": true,
+    "powershell.codeFormatting.trimWhitespaceAroundPipe": true,
+    "powershell.codeFormatting.whitespaceAroundOperator": true,
+    "powershell.codeFormatting.whitespaceAfterSeparator": true,
+    "powershell.codeFormatting.whitespaceBeforeOpenParen": true,
+    "powershell.codeFormatting.whitespaceBetweenParameters": true,
+    "powershell.codeFormatting.whitespaceInsideBrace": true,
+    "powershell.codeFormatting.whitespaceBeforeOpenBrace": true,
+    "powershell.codeFormatting.addWhitespaceAroundPipe": true,
+    "powershell.codeFormatting.openBraceOnSameLine": true,
+    "powershell.codeFormatting.autoCorrectAliases": true,
+    "powershell.codeFormatting.newLineAfterOpenBrace": true,
+    "powershell.codeFormatting.ignoreOneLineBlock": true,
+    "powershell.codeFormatting.newLineAfterCloseBrace": true,
+    "powershell.codeFormatting.useConstantStrings": true,
+    "powershell.codeFormatting.whitespaceAroundPipe": true,
+    //-------- Format Files configuration --------
+    "formatFiles.excludePattern": "**/Docs,**/.vscode,**/Output",
+    "formatFiles.extensionsToInclude": "ps1"
+}

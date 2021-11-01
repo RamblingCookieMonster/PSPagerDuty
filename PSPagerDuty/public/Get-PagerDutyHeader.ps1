@@ -1,4 +1,5 @@
-function Get-PagerDutyHeader {
+function Get-PagerDutyHeader
+{
     <#
         .SYNOPSIS
             Get PagerDuty header for v2 REST API
@@ -9,13 +10,14 @@ function Get-PagerDutyHeader {
         .EXAMPLE
             $header = Get-PagerDutyHeader -Token $Token
     #>
-        [cmdletbinding()]
-        param (
-            [ValidateNotNullOrEmpty()]
-            [string]$Token = $Script:PSPagerDutyConfig.Token
-        )
-        @{
-            "Accept" = "application/vnd.pagerduty+json;version=2"
-            "Authorization" = "Token token=$Token"
-        }
+    [cmdletbinding()]
+    [OutputType('System.Collections.Hashtable')]
+    param (
+        [ValidateNotNullOrEmpty()]
+        [string]$Token = $Script:PSPagerDutyConfig.Token
+    )
+    @{
+        'Accept'        = 'application/vnd.pagerduty+json;version=2'
+        'Authorization' = 'Token token={0}' -f $Token
     }
+}

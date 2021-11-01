@@ -1,5 +1,6 @@
-﻿function Get-PagerDutyData {
-<#
+﻿function Get-PagerDutyData
+{
+    <#
     .SYNOPSIS
         Get PagerDuty data from the v2 REST API
     .DESCRIPTION
@@ -39,7 +40,7 @@
 #>
     [cmdletbinding()]
     param (
-        [parameter(Mandatory=$True)]
+        [parameter(Mandatory = $True)]
         [string]$Type,
         [hashtable]$QueryHash = @{},
 
@@ -50,53 +51,82 @@
         [ValidateNotNullOrEmpty()]
         [string]$Token = $Script:PSPagerDutyConfig.Token
     )
-    $Headers = @{
-        "Accept" = "application/vnd.pagerduty+json;version=2"
-        "Authorization" = "Token token=$Token"
+
+    $Headers = $null
+    $Headers = Get-PagerDutyHeader -Token $Token
+    if (-not $Headers)
+    {
+        Write-Error -Message ('Error during header generation')
+        continue
     }
-    $Append = $null
+
+    $Urls = $null
+    $Urls = Get-PagerDutyUrl
+    if (-not $Urls)
+    {
+        Write-Error -Message ('Error durant la génération du header')
+        continue
+    }
+
     $Type = $Type.ToLower()
-    $BaseUri = "https://api.pagerduty.com/$Type"
-    if($Limit -and -not $QueryHash.ContainsKey('limit')){
+    $BaseUri = '{0}/{1}' -f $Urls.api.url, $Type
+    $ContentType = $null
+    $ContentType = $Urls.api.contenttype
+
+    $Append = $null
+    if ($Limit -and -not $QueryHash.ContainsKey('limit'))
+    {
         $QueryHash.add('limit', $Limit)
     }
-    if($Offset -and -not $QueryHash.ContainsKey('Offset')){
+    if ($Offset -and -not $QueryHash.ContainsKey('Offset'))
+    {
         $QueryHash.add('offset', $Offset)
     }
 
     $CallCount = 0
-    do {
-        [string[]]$UriParts = foreach($Key in $QueryHash.Keys){
+    do
+    {
+        [string[]]$UriParts = foreach ($Key in $QueryHash.Keys)
+        {
             $Value = $QueryHash[$Key]
-            if($Value -is [string[]]){
-                foreach($item in $value){
+            if ($Value -is [string[]])
+            {
+                foreach ($item in $value)
+                {
                     "$Key=$Item"
                 }
             }
-            else {
+            else
+            {
                 "$Key=$Value"
             }
         }
-        if($UriParts.count -gt 0){
-            $Append = Join-Parts -Separator '&' -Parts $UriParts
+        if ($UriParts.count -gt 0)
+        {
+            $Append = Join-Part -Separator '&' -Parts $UriParts
             $ThisUri = "$BaseUri`?$Append"
         }
-        else{
+        else
+        {
             $ThisUri = $BaseUri
         }
         $Response = $null
-        $Response = Invoke-RestMethod -Uri $ThisUri -Method Get -Headers $Headers
+        $Response = Invoke-RestMethod -Uri $ThisUri -Method Get -Headers $Headers -ContentType $ContentType
         $CallCount++
-        if($Raw){
+        if ($Raw)
+        {
             $Response
         }
-        else {
+        else
+        {
             ConvertFrom-PagerDutyData -InputObject $Response.$Type
         }
-        if(-not $Response.more){
+        if (-not $Response.more)
+        {
             break
         }
-        if(-not $Limit){
+        if (-not $Limit)
+        {
             $Limit = $Response.limit
         }
         $CurrentOffset = $Response.offset + $Response.limit
