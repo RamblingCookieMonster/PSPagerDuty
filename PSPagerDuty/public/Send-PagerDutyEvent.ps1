@@ -95,7 +95,16 @@
         [string]$ClientUrl,
         [int]$JsonDepth = 5
     )
-    $uri = 'https://events.pagerduty.com/v2/enqueue'
+    $Urls = $null
+    $Urls = Get-PagerDutyUrl
+    if (-not $Urls)
+    {
+        Write-Error -Message ('Error durant la génération du header')
+        continue
+    }
+
+    $uri = $Urls.Events.url
+    $contenttype = $Urls.Events.contenttype
 
     $Payload = @{
         payload      = @{
@@ -154,5 +163,5 @@
     Invoke-RestMethod -Method Post `
         -Uri $uri `
         -Body $json `
-        -ContentType 'application/json'
+        -ContentType $contenttype
 }
