@@ -3,7 +3,6 @@ $Public = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction Silentl
 $Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue )
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-$ModuleRoot = $PSScriptRoot
 $PSPagerDutyConfig = [pscustomobject]@{
     Token = $null
 }
