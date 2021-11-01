@@ -1,45 +1,46 @@
-﻿function Get-PagerDutyData {
-<#
-    .SYNOPSIS
-        Get PagerDuty data from the v2 REST API
-    .DESCRIPTION
-        Get PagerDuty data from the v2 REST API
-    .PARAMETER Type
-        Type of object, or, what to append to the PagerDuty Uri
+﻿function Get-PagerDutyData
+{
+    <#
+        .SYNOPSIS
+            Get PagerDuty data from the v2 REST API
+        .DESCRIPTION
+            Get PagerDuty data from the v2 REST API
+        .PARAMETER Type
+            Type of object, or, what to append to the PagerDuty Uri
 
-        For example:
-            incidents
-            services
-            incidents/some_incident_id/log_entries
-    .PARAMETER QueryHash
-        Hashtable of filters for the PagerDuty API.
+            For example:
+                incidents
+                services
+                incidents/some_incident_id/log_entries
+        .PARAMETER QueryHash
+            Hashtable of filters for the PagerDuty API.
 
-        For example this input:
-            @{
-                sortby = 'status'
-                'include[]'= 'services',''services','first_trigger_log_entries''
-            }
+            For example this input:
+                @{
+                    sortby = 'status'
+                    'include[]'= 'services',''services','first_trigger_log_entries''
+                }
 
-        Will append this to the Uri:
-            sortby=status&include[]=services&include[]=first_trigger_log_entries
-    .PARAMETER Limit
-        Limit each query to this many results.
-    .PARAMETER Offset
-        Include this offset in the Uri.  Used for pagination.
-    .PARAMETER Raw
-        Return raw Invoke-RestMethod output
-    .PARAMETER MaxQueries
-        Limit pagination to this many API queries
-    .PARAMETER Token
-        PagerDuty API token
+            Will append this to the Uri:
+                sortby=status&include[]=services&include[]=first_trigger_log_entries
+        .PARAMETER Limit
+            Limit each query to this many results.
+        .PARAMETER Offset
+            Include this offset in the Uri.  Used for pagination.
+        .PARAMETER Raw
+            Return raw Invoke-RestMethod output
+        .PARAMETER MaxQueries
+            Limit pagination to this many API queries
+        .PARAMETER Token
+            PagerDuty API token
 
-    .EXAMPLE
-        Get-PagerDutyData -Type incidents -Limit 100 -Token $token
-        # Get all PagerDuty incidents for token $token, 100 at a time
-#>
+        .EXAMPLE
+            Get-PagerDutyData -Type incidents -Limit 100 -Token $token
+            # Get all PagerDuty incidents for token $token, 100 at a time
+    #>
     [cmdletbinding()]
     param (
-        [parameter(Mandatory=$True)]
+        [parameter(Mandatory = $True)]
         [string]$Type,
         [hashtable]$QueryHash = @{},
 
@@ -51,52 +52,65 @@
         [string]$Token = $Script:PSPagerDutyConfig.Token
     )
     $Headers = @{
-        "Accept" = "application/vnd.pagerduty+json;version=2"
-        "Authorization" = "Token token=$Token"
+        'Accept'        = 'application/vnd.pagerduty+json;version=2'
+        'Authorization' = "Token token=$Token"
     }
     $Append = $null
     $Type = $Type.ToLower()
     $BaseUri = "https://api.pagerduty.com/$Type"
-    if($Limit -and -not $QueryHash.ContainsKey('limit')){
+    if ($Limit -and -not $QueryHash.ContainsKey('limit'))
+    {
         $QueryHash.add('limit', $Limit)
     }
-    if($Offset -and -not $QueryHash.ContainsKey('Offset')){
+    if ($Offset -and -not $QueryHash.ContainsKey('Offset'))
+    {
         $QueryHash.add('offset', $Offset)
     }
 
     $CallCount = 0
-    do {
-        [string[]]$UriParts = foreach($Key in $QueryHash.Keys){
+    do
+    {
+        [string[]]$UriParts = foreach ($Key in $QueryHash.Keys)
+        {
             $Value = $QueryHash[$Key]
-            if($Value -is [string[]]){
-                foreach($item in $value){
+            if ($Value -is [string[]])
+            {
+                foreach ($item in $value)
+                {
                     "$Key=$Item"
                 }
             }
-            else {
+            else
+            {
                 "$Key=$Value"
             }
         }
-        if($UriParts.count -gt 0){
+        if ($UriParts.count -gt 0)
+        {
             $Append = Join-Parts -Separator '&' -Parts $UriParts
             $ThisUri = "$BaseUri`?$Append"
         }
-        else{
+        else
+        {
             $ThisUri = $BaseUri
         }
         $Response = $null
         $Response = Invoke-RestMethod -Uri $ThisUri -Method Get -Headers $Headers
         $CallCount++
-        if($Raw){
+        if ($Raw)
+        {
             $Response
         }
-        else {
+        else
+        {
             ConvertFrom-PagerDutyData -InputObject $Response.$Type
         }
-        if(-not $Response.more){
+        if (-not $Response.more)
+        {
             break
         }
-        if(-not $Limit){
+        if (-not $Limit)
+        {
             $Limit = $Response.limit
         }
         $CurrentOffset = $Response.offset + $Response.limit

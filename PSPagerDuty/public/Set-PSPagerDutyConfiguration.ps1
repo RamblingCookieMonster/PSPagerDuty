@@ -1,4 +1,5 @@
-function Set-PSPagerDutyConfiguration {
+function Set-PSPagerDutyConfiguration
+{
     <#
     .SYNOPSIS
        Set PSPagerDuty configuration values

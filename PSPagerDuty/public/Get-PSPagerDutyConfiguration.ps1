@@ -1,4 +1,5 @@
-function Get-PSPagerDutyConfiguration {
+function Get-PSPagerDutyConfiguration
+{
     <#
     .SYNOPSIS
        Get PSPagerDuty configuration values

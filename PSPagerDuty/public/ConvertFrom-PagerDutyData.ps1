@@ -1,4 +1,5 @@
-function ConvertFrom-PagerDutyData {
+function ConvertFrom-PagerDutyData
+{
     <#
         .SYNOPSIS
             Parse output from PagerDuty API query
@@ -13,11 +14,14 @@ function ConvertFrom-PagerDutyData {
     param(
         [object[]]$InputObject
     )
-    foreach($Object in $InputObject){
+    foreach ($Object in $InputObject)
+    {
         $Properties = Get-PropertyOrder $Object
-        foreach($Prop in $Properties){
+        foreach ($Prop in $Properties)
+        {
             # Dates!
-            if($Prop -match '_at$' -and $Object.$Prop -match "^\d{4}-"){
+            if ($Prop -match '_at$' -and $Object.$Prop -match '^\d{4}-')
+            {
                 $Object.$Prop = Get-Date $Object.$Prop
             }
         }
