@@ -11,12 +11,13 @@ function Get-PagerDutyHeader
             $header = Get-PagerDutyHeader -Token $Token
     #>
     [cmdletbinding()]
+    [OutputType('System.Collections.Hashtable')]
     param (
         [ValidateNotNullOrEmpty()]
         [string]$Token = $Script:PSPagerDutyConfig.Token
     )
     @{
         'Accept'        = 'application/vnd.pagerduty+json;version=2'
-        'Authorization' = "Token token=$Token"
+        'Authorization' = 'Token token={0}' -f $Token
     }
 }

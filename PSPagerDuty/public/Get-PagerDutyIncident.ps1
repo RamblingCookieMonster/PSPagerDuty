@@ -1,5 +1,6 @@
-﻿function Get-PagerDutyIncident {
-<#
+﻿function Get-PagerDutyIncident
+{
+    <#
     .SYNOPSIS
         Get PagerDuty data from the v2 REST API
     .DESCRIPTION
@@ -78,7 +79,7 @@
         [hashtable]$QueryHash = @{},
         [datetime]$Since,
         [datetime]$Until,
-        [validateset('triggered','acknowledged','resolved')]
+        [validateset('triggered', 'acknowledged', 'resolved')]
         [string[]]$Status, #statuses
         [string]$DedupeKey, #incident_key
         [string[]]$ServiceIDs, #service_ids
@@ -87,7 +88,7 @@
         [string[]]$Urgency, # urgencies
         [string]$TimeZone, # time_zone
         [string]$SortBy, # sort_by
-        [validateset('users','services','first_trigger_log_entries', 'escalation_policies', 'teams', 'assignees', 'acknowledgers', 'priorities', 'conference_bridge')]
+        [validateset('users', 'services', 'first_trigger_log_entries', 'escalation_policies', 'teams', 'assignees', 'acknowledgers', 'priorities', 'conference_bridge')]
         [string[]]$Include,
         [switch]$CustomDetails,
 
@@ -98,49 +99,59 @@
         [string]$Token = $Script:PSPagerDutyConfig.Token
     )
     $Params = @{}
-    switch($PSBoundParameters.Keys) {
-        'Since' {
+    switch ($PSBoundParameters.Keys)
+    {
+        'Since'
+        {
             $QueryHash.since = $Since.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-            if(-not $PSBoundParameters.ContainsKey('Until')){
+            if (-not $PSBoundParameters.ContainsKey('Until'))
+            {
                 $QueryHash.until = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-            }    
+            }
         }
-        'Until' {$QueryHash.until = $Until.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')}
-        'Status' {$QueryHash.'statuses[]' = $Status} #statuses
-        'DedupeKey' {$QueryHash.incident_key = $DedupeKey}  #incident_key
-        'ServiceIDs' {$QueryHash.'service_ids[]' = $ServiceIDs} #service_ids
-        'TeamIDs' {$QueryHash.'team_ids[]' = $TeamIDs} # team_ids
-        'UserIDs' {$QueryHash.'user_ids[]' = $UserIDs} # user_ids
-        'Urgency' {$QueryHash.'urgencies[]' = $Urgency} # urgencies
-        'TimeZone' {$QueryHash.time_zone = $TimeZone} # time_zone
-        'SortBy' {$QueryHash.sort_by = $SortBy} # sort_by
-        'Include' {$QueryHash.'include[]' = $Include}
-        'MaxQueries' {$Params.add('MaxQueries', $MaxQueries)}
-        'Limit' {$Params.add('Limit', $Limit)}
-        'Token' {$Params.add('Token', $Token)}
-        'Raw' {$Params.add('Raw', $Raw)}
+        'Until' { $QueryHash.until = $Until.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') }
+        'Status' { $QueryHash.'statuses[]' = $Status } #statuses
+        'DedupeKey' { $QueryHash.incident_key = $DedupeKey }  #incident_key
+        'ServiceIDs' { $QueryHash.'service_ids[]' = $ServiceIDs } #service_ids
+        'TeamIDs' { $QueryHash.'team_ids[]' = $TeamIDs } # team_ids
+        'UserIDs' { $QueryHash.'user_ids[]' = $UserIDs } # user_ids
+        'Urgency' { $QueryHash.'urgencies[]' = $Urgency } # urgencies
+        'TimeZone' { $QueryHash.time_zone = $TimeZone } # time_zone
+        'SortBy' { $QueryHash.sort_by = $SortBy } # sort_by
+        'Include' { $QueryHash.'include[]' = $Include }
+        'MaxQueries' { $Params.add('MaxQueries', $MaxQueries) }
+        'Limit' { $Params.add('Limit', $Limit) }
+        'Token' { $Params.add('Token', $Token) }
+        'Raw' { $Params.add('Raw', $Raw) }
     }
 
     $Output = @( Get-PagerDutyData @Params -Type incidents -QueryHash $QueryHash -Verbose:$VerbosePreference )
-    if($CustomDetails){
+    if ($CustomDetails)
+    {
         $Header = Get-PagerDutyHeader -Token $Token
-        foreach($Incident in $Output){
+        foreach ($Incident in $Output)
+        {
             $Uri = '{0}?include[]=channels' -f $Incident.first_trigger_log_entry.self
             $LogEntry = $null
             $LogEntry = Invoke-RestMethod -Uri $Uri -Headers $Header -Verbose:$VerbosePreference
-            if($LogEntry.log_entry.channel.client_url){
+            if ($LogEntry.log_entry.channel.client_url)
+            {
                 Add-Member -InputObject $Incident -MemberType NoteProperty -Name client_url -Value $LogEntry.log_entry.channel.client_url -Force
             }
-            if($LogEntry.log_entry.channel.client){
+            if ($LogEntry.log_entry.channel.client)
+            {
                 Add-Member -InputObject $Incident -MemberType NoteProperty -Name client -Value $LogEntry.log_entry.channel.client -Force
             }
-            if($LogEntry.log_entry.channel.details){
+            if ($LogEntry.log_entry.channel.details)
+            {
                 Add-Member -InputObject $Incident -MemberType NoteProperty -Name details -Value $LogEntry.log_entry.channel.details -Force
             }
-            if($LogEntry.log_entry.channel.incident_key){
+            if ($LogEntry.log_entry.channel.incident_key)
+            {
                 Add-Member -InputObject $Incident -MemberType NoteProperty -Name incident_key -Value $LogEntry.log_entry.channel.incident_key -Force
             }
-            if($LogEntry.log_entry.channel.cef_details.dedup_key){
+            if ($LogEntry.log_entry.channel.cef_details.dedup_key)
+            {
                 Add-Member -InputObject $Incident -MemberType NoteProperty -Name dedup_key -Value $LogEntry.log_entry.channel.cef_details.dedup_key -Force
             }
             Add-Member -InputObject $Incident -MemberType NoteProperty -Name first_trigger_log_entry_raw -Value $LogEntry -Force
