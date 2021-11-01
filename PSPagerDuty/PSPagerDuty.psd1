@@ -1,6 +1,6 @@
 @{
     RootModule        = 'PSPagerDuty.psm1'
-    ModuleVersion     = '0.0.2'
+    ModuleVersion     = '0.0.4'
     GUID              = 'a35dcabc-3568-4636-9716-5cb79f1b75b8'
     Author            = 'Warren Frame'
     CompanyName       = 'Unknown'
