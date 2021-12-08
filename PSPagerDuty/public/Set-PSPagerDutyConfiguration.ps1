@@ -17,10 +17,17 @@ function Set-PSPagerDutyConfiguration {
     [cmdletbinding()]
     param(
         [ValidateNotNull()]
-        [string]$Token
+        [string]$Token,
+        [ValidateScript({if (([System.Uri]::IsWellFormedUriString($_, [System.UriKind]::Absolute)) -or ($_ -eq '')) {
+            $true
+        } else {
+            throw "$_ is not a valid uri format."
+        }})]
+        [System.Uri]$Proxy
     )
     Switch ($PSBoundParameters.Keys)
     {
         'Token' { $Script:PSPagerDutyConfig.Token = $Token }
+        'Proxy' { $Script:PSPagerDutyConfig.Proxy = $Proxy }
     }
 }

@@ -103,7 +103,7 @@
         } else {
             throw "$_ is not a valid uri format."
         }})]
-        [System.Uri]$Proxy
+        [System.Uri]$Proxy=$Script:PSPagerDutyConfig.Proxy
     )
     $Params = @{}
     switch($PSBoundParameters.Keys) {
