@@ -50,6 +50,8 @@
         Client generating this alert
     .PARAMETER ClientUrl
         Uri to client that generates this alert
+    .PARAMETER Proxy
+        Uses a proxy server for the request, rather than connecting directly to the internet resource. Enter the Uniform Resource Identifier (URI) of a network proxy server
     .EXAMPLE
         Send-PagerDutyEvent `
             -IntegrationKey REDACTED `
@@ -68,6 +70,7 @@
             -Action trigger `
             -Client 'PowerShell-ad-privgroup' `
             -ClientUrl "https://some.useful.url"
+            -Proxy "http://myproxy.com:3128"
 #>
 [cmdletbinding()]
 param (
@@ -87,7 +90,13 @@ param (
     [validateset('trigger', 'resolve', 'acknowledge')]
     [string]$Action,
     [string]$Client,
-    [string]$ClientUrl
+    [string]$ClientUrl,
+    [ValidateScript({if ([System.Uri]::IsWellFormedUriString($_, [System.UriKind]::Absolute)) {
+        $true
+    } else {
+        throw "$_ is not a valid uri format."
+    }})]
+    [System.Uri]$Proxy
 )
 $uri = 'https://events.pagerduty.com/v2/enqueue'
 
@@ -135,8 +144,16 @@ if($Links.count -gt 0){
     $Payload.add('links',$Links)
 }
 $json = $Payload | ConvertTo-Json -Compress
-Invoke-RestMethod -Method Post `
-                  -Uri $uri `
-                  -Body $json `
-                  -ContentType 'application/json'
+
+$params = @{ 
+    Method      = 'Post';
+    Uri         = $Uri;
+    Body        = $json;
+    ContentType = 'application/json';
+}
+if ($Proxy) {
+    $params.Add("Proxy", $Proxy)
+}
+
+Invoke-RestMethod @params
 }
