@@ -32,4 +32,7 @@ I will always consider issues and pull requests, but likely at a slow rate, and 
 
 # Set token for the current session
     Set-PSPagerDuyConfiguration -Token $Token
+
+# Set proxy for the current session
+    Set-PSPagerDuyConfiguration -Proxy $Proxy
 ```
