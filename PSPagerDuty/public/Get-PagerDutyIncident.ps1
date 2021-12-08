@@ -66,6 +66,8 @@
         Limit pagination to this many API queries
     .PARAMETER Token
         PagerDuty API token
+    .PARAMETER Proxy
+        Uses a proxy server for the request, rather than connecting directly to the internet resource. Enter the Uniform Resource Identifier (URI) of a network proxy server
     .EXAMPLE
         Get-PagerDutyIncident -Token $token -Status acknowledged, resolved
         # Get resolved and acknowledged incidents for token $token, 100 at a time.
@@ -95,7 +97,13 @@
         [switch]$Raw,
         [int]$MaxQueries,
         [ValidateNotNullOrEmpty()]
-        [string]$Token = $Script:PSPagerDutyConfig.Token
+        [string]$Token = $Script:PSPagerDutyConfig.Token,
+        [ValidateScript({if ([System.Uri]::IsWellFormedUriString($_, [System.UriKind]::Absolute)) {
+            $true
+        } else {
+            throw "$_ is not a valid uri format."
+        }})]
+        [System.Uri]$Proxy
     )
     $Params = @{}
     switch($PSBoundParameters.Keys) {
@@ -127,7 +135,15 @@
         foreach($Incident in $Output){
             $Uri = '{0}?include[]=channels' -f $Incident.first_trigger_log_entry.self
             $LogEntry = $null
-            $LogEntry = Invoke-RestMethod -Uri $Uri -Headers $Header -Verbose:$VerbosePreference
+            $params = @{ 
+                Uri     = $Uri;
+                Headers = $Header;
+                Verbose = $VerbosePreference;
+            }
+            if ($Proxy) {
+                $params.Add("Proxy", $Proxy)
+            }
+            $LogEntry = Invoke-RestMethod @params
             if($LogEntry.log_entry.channel.client_url){
                 Add-Member -InputObject $Incident -MemberType NoteProperty -Name client_url -Value $LogEntry.log_entry.channel.client_url -Force
             }
