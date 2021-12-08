@@ -128,22 +128,24 @@
         'Token' {$Params.add('Token', $Token)}
         'Raw' {$Params.add('Raw', $Raw)}
     }
-
+    if ($Proxy) {
+        $Params.Add("Proxy", $Proxy)
+    }
     $Output = @( Get-PagerDutyData @Params -Type incidents -QueryHash $QueryHash -Verbose:$VerbosePreference )
     if($CustomDetails){
         $Header = Get-PagerDutyHeader -Token $Token
         foreach($Incident in $Output){
             $Uri = '{0}?include[]=channels' -f $Incident.first_trigger_log_entry.self
             $LogEntry = $null
-            $params = @{ 
+            $RestMethodParams = @{
                 Uri     = $Uri;
                 Headers = $Header;
                 Verbose = $VerbosePreference;
             }
             if ($Proxy) {
-                $params.Add("Proxy", $Proxy)
+                $RestMethodParams.Add("Proxy", $Proxy)
             }
-            $LogEntry = Invoke-RestMethod @params
+            $LogEntry = Invoke-RestMethod @RestMethodParams
             if($LogEntry.log_entry.channel.client_url){
                 Add-Member -InputObject $Incident -MemberType NoteProperty -Name client_url -Value $LogEntry.log_entry.channel.client_url -Force
             }

@@ -93,15 +93,15 @@
             $ThisUri = $BaseUri
         }
         $Response = $null
-        $params = @{ 
+        $RestMethodParams = @{ 
             Method  = 'Get';
             Uri     = $ThisUri;
             Headers = $Headers;
         }
         if ($Proxy) {
-            $params.Add("Proxy", $Proxy)
+            $RestMethodParams.Add("Proxy", $Proxy)
         }
-        $Response = Invoke-RestMethod @params
+        $Response = Invoke-RestMethod @RestMethodParams
         $CallCount++
         if($Raw){
             $Response

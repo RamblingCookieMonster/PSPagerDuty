@@ -145,15 +145,15 @@ if($Links.count -gt 0){
 }
 $json = $Payload | ConvertTo-Json -Compress
 
-$params = @{ 
+$RestMethodParams = @{ 
     Method      = 'Post';
     Uri         = $Uri;
     Body        = $json;
     ContentType = 'application/json';
 }
 if ($Proxy) {
-    $params.Add("Proxy", $Proxy)
+    $RestMethodParams.Add("Proxy", $Proxy)
 }
 
-Invoke-RestMethod @params
+Invoke-RestMethod @RestMethodParams
 }
