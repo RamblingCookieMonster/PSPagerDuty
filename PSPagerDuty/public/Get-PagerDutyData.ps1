@@ -32,6 +32,8 @@
         Limit pagination to this many API queries
     .PARAMETER Token
         PagerDuty API token
+    .PARAMETER Proxy
+        Uses a proxy server for the request, rather than connecting directly to the internet resource. Enter the Uniform Resource Identifier (URI) of a network proxy server
 
     .EXAMPLE
         Get-PagerDutyData -Type incidents -Limit 100 -Token $token
@@ -48,7 +50,13 @@
         [switch]$Raw,
         [int]$MaxQueries,
         [ValidateNotNullOrEmpty()]
-        [string]$Token = $Script:PSPagerDutyConfig.Token
+        [string]$Token = $Script:PSPagerDutyConfig.Token,
+        [ValidateScript({if ([System.Uri]::IsWellFormedUriString($_, [System.UriKind]::Absolute)) {
+            $true
+        } else {
+            throw "$_ is not a valid uri format."
+        }})]
+        [System.Uri]$Proxy=$Script:PSPagerDutyConfig.Proxy
     )
     $Headers = @{
         "Accept" = "application/vnd.pagerduty+json;version=2"
@@ -85,7 +93,15 @@
             $ThisUri = $BaseUri
         }
         $Response = $null
-        $Response = Invoke-RestMethod -Uri $ThisUri -Method Get -Headers $Headers
+        $RestMethodParams = @{ 
+            Method  = 'Get';
+            Uri     = $ThisUri;
+            Headers = $Headers;
+        }
+        if ($Proxy) {
+            $RestMethodParams.Add("Proxy", $Proxy)
+        }
+        $Response = Invoke-RestMethod @RestMethodParams
         $CallCount++
         if($Raw){
             $Response

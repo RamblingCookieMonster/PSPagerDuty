@@ -6,6 +6,7 @@ $Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction Silen
 $ModuleRoot = $PSScriptRoot
 $PSPagerDutyConfig = [pscustomobject]@{
     Token = $null
+    Proxy = $null
 }
 
 #Dot source the files
